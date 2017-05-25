@@ -67,6 +67,27 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public final class RetrofitTest {
   @Rule public final MockWebServer server = new MockWebServer();
 
+  class TestInterceptor implements LoodahInterceptor {
+    // returns authorization header value
+    public String addAuth(){
+      return "auth";
+    }
+
+    // add signature based on string to sign generated
+    public String addSignature(String stringToSign){
+      return "signature";
+    }
+
+    // set custom user agent
+    public String setUserAgent() {
+      return "user-agent";
+    }
+
+    public String setEndpoint() {
+      return "sendcode";
+    }
+  }
+
   interface CallMethod {
     @GET("/") Call<String> disallowed();
     @POST("/") Call<ResponseBody> disallowed(@Body String body);
@@ -218,8 +239,18 @@ public final class RetrofitTest {
 
   @Test public void validateEagerlyDisabledByDefault() {
     Retrofit retrofit = new Retrofit.Builder()
-        .baseUrl(server.url("/"))
+        .baseUrl(server.url("sendcode/"))
         .build();
+
+    // Should not throw exception about incorrect configuration of the VoidService
+    retrofit.create(VoidService.class);
+  }
+
+  @Test public void validateLoodahInterceptor() {
+    Retrofit retrofit = new Retrofit.Builder()
+            .baseUrl(server.url("sendcode/"))
+            .setInterceptor(new TestInterceptor())
+            .build();
 
     // Should not throw exception about incorrect configuration of the VoidService
     retrofit.create(VoidService.class);

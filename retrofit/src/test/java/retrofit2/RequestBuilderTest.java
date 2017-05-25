@@ -2700,6 +2700,7 @@ public final class RequestBuilderTest {
   static <T> Request buildRequest(Class<T> cls, Object... args) {
     Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
         .baseUrl("http://example.com/")
+            .setInterceptor(null)
         .addConverterFactory(new ToStringConverterFactory());
 
     return buildRequest(cls, retrofitBuilder, args);

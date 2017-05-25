@@ -66,6 +66,7 @@ final class ServiceMethod<R, T> {
 
   final okhttp3.Call.Factory callFactory;
   final CallAdapter<R, T> callAdapter;
+  final LoodahInterceptor loodahInterceptor;
 
   private final HttpUrl baseUrl;
   private final Converter<ResponseBody, R> responseConverter;
@@ -91,12 +92,13 @@ final class ServiceMethod<R, T> {
     this.isFormEncoded = builder.isFormEncoded;
     this.isMultipart = builder.isMultipart;
     this.parameterHandlers = builder.parameterHandlers;
+    this.loodahInterceptor = builder.loodahInterceptor;
   }
 
   /** Builds an HTTP request from method arguments. */
   Request toRequest(@Nullable Object... args) throws IOException {
     RequestBuilder requestBuilder = new RequestBuilder(httpMethod, baseUrl, relativeUrl, headers,
-        contentType, hasBody, isFormEncoded, isMultipart);
+        contentType, hasBody, isFormEncoded, isMultipart, loodahInterceptor);
 
     @SuppressWarnings("unchecked") // It is an error to invoke a method with the wrong arg types.
     ParameterHandler<Object>[] handlers = (ParameterHandler<Object>[]) parameterHandlers;
@@ -149,6 +151,7 @@ final class ServiceMethod<R, T> {
     ParameterHandler<?>[] parameterHandlers;
     Converter<ResponseBody, T> responseConverter;
     CallAdapter<T, R> callAdapter;
+    LoodahInterceptor loodahInterceptor;
 
     Builder(Retrofit retrofit, Method method) {
       this.retrofit = retrofit;
@@ -156,6 +159,7 @@ final class ServiceMethod<R, T> {
       this.methodAnnotations = method.getAnnotations();
       this.parameterTypes = method.getGenericParameterTypes();
       this.parameterAnnotationsArray = method.getParameterAnnotations();
+      this.loodahInterceptor = retrofit.getLoodahInterceptor();
     }
 
     public ServiceMethod build() {

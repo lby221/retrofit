@@ -16,6 +16,7 @@
 package retrofit2;
 
 import java.io.IOException;
+import java.util.Date;
 import javax.annotation.Nullable;
 import okhttp3.FormBody;
 import okhttp3.Headers;
@@ -40,6 +41,7 @@ final class RequestBuilder {
 
   private final Request.Builder requestBuilder;
   private @Nullable MediaType contentType;
+  private @Nullable LoodahInterceptor loodahInterceptor;
 
   private final boolean hasBody;
   private @Nullable MultipartBody.Builder multipartBuilder;
@@ -48,13 +50,14 @@ final class RequestBuilder {
 
   RequestBuilder(String method, HttpUrl baseUrl, @Nullable String relativeUrl,
       @Nullable Headers headers, @Nullable MediaType contentType, boolean hasBody,
-      boolean isFormEncoded, boolean isMultipart) {
+      boolean isFormEncoded, boolean isMultipart, @Nullable LoodahInterceptor interceptor) {
     this.method = method;
     this.baseUrl = baseUrl;
     this.relativeUrl = relativeUrl;
     this.requestBuilder = new Request.Builder();
     this.contentType = contentType;
     this.hasBody = hasBody;
+    this.loodahInterceptor = interceptor;
 
     if (headers != null) {
       requestBuilder.headers(headers);
@@ -221,6 +224,80 @@ final class RequestBuilder {
       } else {
         requestBuilder.addHeader("Content-Type", contentType.toString());
       }
+    }
+
+    // Add Loodah headers
+      StringBuffer sb = new StringBuffer();
+
+    String endpoint = relativeUrl != null ? relativeUrl : "";
+
+    if (loodahInterceptor != null) {
+        endpoint = loodahInterceptor.setEndpoint();
+    }
+
+    sb.append(method);
+    sb.append("\n");
+    sb.append(endpoint);
+    sb.append("\n\n");
+    sb.append("accept-encoding");
+    sb.append("\n");
+    sb.append("gzip");
+
+    String userAgent = "Loodah Android";
+    String epochtime = String.valueOf(new Date().getTime());
+
+    if (loodahInterceptor != null) {
+      sb.append("\n\n");
+      sb.append("authorization");
+      sb.append("\n");
+      sb.append(loodahInterceptor.addAuth());
+
+      userAgent = loodahInterceptor.setUserAgent();
+    }
+
+    sb.append("\n\n");
+    sb.append("connection");
+    sb.append("\n");
+    sb.append("Keep-Alive");
+    sb.append("\n\n");
+
+    if (body != null) {
+      try {
+          sb.append("content-length");
+          sb.append("\n");
+          sb.append(String.valueOf(body.contentLength()));
+          sb.append("\n\n");
+      } catch (Exception e) {
+          ; // Don't add any content-length headers
+      }
+    }
+
+    if (body != null && body.contentType() != null) {
+      sb.append("content-type");
+      sb.append("\n");
+      sb.append(body.contentType());
+      sb.append("\n\n");
+    }
+
+    sb.append("user-agent");
+    sb.append("\n");
+    sb.append(userAgent);
+    sb.append("\n\n");
+    sb.append(epochtime);
+
+    String stringToSign = sb.toString();
+    System.out.println(stringToSign);
+
+    String signature = "";
+    if (loodahInterceptor != null) {
+      signature = loodahInterceptor.addSignature(stringToSign);
+    }
+
+    requestBuilder.addHeader("User-Agent", userAgent);
+
+    if (!signature.isEmpty()) {
+      requestBuilder.addHeader("X-Loodah-Time", epochtime);
+      requestBuilder.addHeader("X-Loodah-Signature", signature);
     }
 
     return requestBuilder

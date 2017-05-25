@@ -66,16 +66,18 @@ public final class Retrofit {
   final List<CallAdapter.Factory> adapterFactories;
   final @Nullable Executor callbackExecutor;
   final boolean validateEagerly;
+  final LoodahInterceptor loodahInterceptor;
 
   Retrofit(okhttp3.Call.Factory callFactory, HttpUrl baseUrl,
       List<Converter.Factory> converterFactories, List<CallAdapter.Factory> adapterFactories,
-      @Nullable Executor callbackExecutor, boolean validateEagerly) {
+      @Nullable Executor callbackExecutor, boolean validateEagerly, LoodahInterceptor interceptor) {
     this.callFactory = callFactory;
     this.baseUrl = baseUrl;
     this.converterFactories = unmodifiableList(converterFactories); // Defensive copy at call site.
     this.adapterFactories = unmodifiableList(adapterFactories); // Defensive copy at call site.
     this.callbackExecutor = callbackExecutor;
     this.validateEagerly = validateEagerly;
+    this.loodahInterceptor = interceptor;
   }
 
   /**
@@ -149,6 +151,10 @@ public final class Retrofit {
             return serviceMethod.callAdapter.adapt(okHttpCall);
           }
         });
+  }
+
+  LoodahInterceptor getLoodahInterceptor() {
+    return loodahInterceptor;
   }
 
   private void eagerlyValidateMethods(Class<?> service) {
@@ -399,6 +405,7 @@ public final class Retrofit {
     private final List<CallAdapter.Factory> adapterFactories = new ArrayList<>();
     private @Nullable Executor callbackExecutor;
     private boolean validateEagerly;
+    private LoodahInterceptor loodahInterceptor = null;
 
     Builder(Platform platform) {
       this.platform = platform;
@@ -553,11 +560,20 @@ public final class Retrofit {
     }
 
     /**
+     * Sets API level interceptor to retrofit
+     */
+    public Builder setInterceptor(LoodahInterceptor interceptor) {
+      this.loodahInterceptor = interceptor;
+      return this;
+    }
+
+    /**
      * Create the {@link Retrofit} instance using the configured values.
      * <p>
      * Note: If neither {@link #client} nor {@link #callFactory} is called a default {@link
      * OkHttpClient} will be created and used.
      */
+
     public Retrofit build() {
       if (baseUrl == null) {
         throw new IllegalStateException("Base URL required.");
@@ -581,7 +597,7 @@ public final class Retrofit {
       List<Converter.Factory> converterFactories = new ArrayList<>(this.converterFactories);
 
       return new Retrofit(callFactory, baseUrl, converterFactories, adapterFactories,
-          callbackExecutor, validateEagerly);
+          callbackExecutor, validateEagerly, loodahInterceptor);
     }
   }
 }
