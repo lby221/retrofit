@@ -96,8 +96,8 @@ public final class RetrofitTest {
     @GET("/") Call<okhttp3.Response> badType2();
 
     @GET("/") Call<ResponseBody> getResponseBody();
-    @GET("/") Call<Void> getVoid();
-    @POST("/") Call<ResponseBody> postRequestBody(@Body RequestBody body);
+    @GET("sendcode?a=b") Call<Void> getVoid();
+    @POST("sendcode?a=b") Call<ResponseBody> postRequestBody(@Body RequestBody body);
     @GET("/") Call<ResponseBody> queryString(@Query("foo") String foo);
     @GET("/") Call<ResponseBody> queryObject(@Query("foo") Object foo);
   }
@@ -107,7 +107,7 @@ public final class RetrofitTest {
   interface Extending extends CallMethod {
   }
   interface StringService {
-    @GET("/") String get();
+    @GET("sendcode?a=%2b3838383") String get();
   }
   interface UnresolvableResponseType {
     @GET("/") <T> Call<T> typeVariable();
@@ -124,7 +124,7 @@ public final class RetrofitTest {
     @POST("/") Call<ResponseBody> wildcardUpperBound(@Body List<? extends RequestBody> body);
   }
   interface VoidService {
-    @GET("/") void nope();
+    @GET("sendcode?a=%2b3838383") void nope();
   }
   interface Annotated {
     @GET("/") @Foo Call<String> method();

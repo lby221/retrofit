@@ -229,11 +229,8 @@ final class RequestBuilder {
     // Add Loodah headers
       StringBuffer sb = new StringBuffer();
 
-    String endpoint = relativeUrl != null ? relativeUrl : "";
-
-    if (loodahInterceptor != null) {
-        endpoint = loodahInterceptor.setEndpoint();
-    }
+    String endpoint = url.toString();
+    endpoint = endpoint.replace(baseUrl.toString(), "");
 
     sb.append(method);
     sb.append("\n");
@@ -247,10 +244,15 @@ final class RequestBuilder {
     String epochtime = String.valueOf(new Date().getTime());
 
     if (loodahInterceptor != null) {
-      sb.append("\n\n");
-      sb.append("authorization");
-      sb.append("\n");
-      sb.append(loodahInterceptor.addAuth());
+        String authString = loodahInterceptor.addAuth();
+
+        if (authString != null && !authString.isEmpty()) {
+            sb.append("\n\n");
+            sb.append("authorization");
+            sb.append("\n");
+            sb.append(authString);
+          requestBuilder.addHeader("Authorization", authString);
+        }
 
       userAgent = loodahInterceptor.setUserAgent();
     }
@@ -286,7 +288,6 @@ final class RequestBuilder {
     sb.append(epochtime);
 
     String stringToSign = sb.toString();
-    System.out.println(stringToSign);
 
     String signature = "";
     if (loodahInterceptor != null) {
@@ -294,6 +295,7 @@ final class RequestBuilder {
     }
 
     requestBuilder.addHeader("User-Agent", userAgent);
+    System.out.println(stringToSign);
 
     if (!signature.isEmpty()) {
       requestBuilder.addHeader("X-Loodah-Time", epochtime);

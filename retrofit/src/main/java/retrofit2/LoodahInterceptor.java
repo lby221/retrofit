@@ -13,7 +13,4 @@ public interface LoodahInterceptor {
 
     // set custom user agent
     String setUserAgent();
-
-    // set Loodah endpoint
-    String setEndpoint();
 }

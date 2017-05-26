@@ -15,6 +15,13 @@
 
   <dependencies>
     <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>retrofit</artifactId>
+      <version>${project.version}</version>
+      <systemPath>${basedir}/../../retrofit/target/retrofit-2.3.1.jar</systemPath>
+      <scope>system</scope>
+    </dependency>
+    <dependency>
       <groupId>io.reactivex</groupId>
       <artifactId>rxjava</artifactId>
     </dependency>
